@@ -38,14 +38,13 @@ def _note_guid(iso2: str) -> str:
     return base64.urlsafe_b64encode(digest[:9]).decode().rstrip("=")
 
 
-MODEL_ID = _stable_id("model:v1")
+MODEL_ID = _stable_id("model:v2")
 DECK_IDS = {c: _stable_id(f"deck:{c}") for c in CONTINENTS}
 DECK_IDS["World Cup 2026"] = _stable_id("deck:World Cup 2026")
 
-FRONT_TMPL = """\
-<div class="flag-card">
-  <img src="{{Flag}}">
-</div>"""
+# Flag field stores the <img> tag so Anki's media scanner finds the reference
+# inside the note itself, which is required for reliable media import on mobile.
+FRONT_TMPL = '<div class="flag-card">{{Flag}}</div>'
 
 BACK_TMPL = """\
 {{FrontSide}}
@@ -85,7 +84,7 @@ def build_model() -> genanki.Model:
     return genanki.Model(
         MODEL_ID,
         "Country Flag",
-        fields=[{"name": "Flag"}, {"name": "Country"}],
+        fields=[{"name": "Country"}, {"name": "Flag"}],
         templates=[{"name": "Flag → Country", "qfmt": FRONT_TMPL, "afmt": BACK_TMPL}],
         css=CSS,
     )
@@ -150,9 +149,10 @@ def build_deck(
         iso2 = country["iso2"]
         if iso2 not in flag_paths:
             continue
+        img_tag = f'<img src="flag_{iso2}.png">'
         note = genanki.Note(
             model=model,
-            fields=[f"flag_{iso2}.png", country["name"]],
+            fields=[country["name"], img_tag],
             tags=_make_tags(country, is_wc_deck),
         )
         note.guid = _note_guid(iso2)
