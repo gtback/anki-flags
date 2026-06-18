@@ -8,6 +8,7 @@ import sys
 import time
 from pathlib import Path
 
+import cairosvg
 import genanki
 import requests
 from requests.adapters import HTTPAdapter
@@ -106,7 +107,7 @@ def download_flags(
     result: dict[str, Path] = {}
     for country in countries:
         iso2 = country["iso2"]
-        local_path = CACHE_DIR / f"flag_{iso2}.svg"
+        local_path = CACHE_DIR / f"flag_{iso2}.png"
         if local_path.exists():
             result[iso2] = local_path
             continue
@@ -114,7 +115,8 @@ def download_flags(
         try:
             resp = session.get(url, timeout=10)
             resp.raise_for_status()
-            local_path.write_bytes(resp.content)
+            png = cairosvg.svg2png(bytestring=resp.content, output_width=320)
+            local_path.write_bytes(png)
             result[iso2] = local_path
             time.sleep(0.05)
         except Exception as exc:
@@ -150,7 +152,7 @@ def build_deck(
             continue
         note = genanki.Note(
             model=model,
-            fields=[f"flag_{iso2}.svg", country["name"]],
+            fields=[f"flag_{iso2}.png", country["name"]],
             tags=_make_tags(country, is_wc_deck),
         )
         note.guid = _note_guid(iso2)
