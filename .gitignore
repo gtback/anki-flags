@@ -1,0 +1,10 @@
+flags_cache/
+output/
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+.DS_Store
+Thumbs.db
