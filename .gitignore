@@ -1,5 +1,4 @@
 flags_cache/
-output/
 __pycache__/
 *.pyc
 *.pyo
